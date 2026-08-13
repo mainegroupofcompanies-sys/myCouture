@@ -6,8 +6,9 @@ function Orders() {
   const [historyTarget, setHistoryTarget] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const { orders, addOrder, deleteOrder, updateOrderStatus, clients, workers, markWagePaid } = useData()
+  const { orders, addOrder, deleteOrder, updateOrder, updateOrderStatus, clients, workers, markWagePaid } = useData()
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState({
     clientName: '', garment: '', amount: '', status: 'Measuring', dueDate: '', image: '',
     fabricImage: '', fabricType: '', fabricColor: '', assignedWorker: '', wage: '',
@@ -38,12 +39,45 @@ function Orders() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    addOrder({ ...formData, amount: Number(formData.amount), wage: Number(formData.wage) || 0 })
+    const payload = { ...formData, amount: Number(formData.amount), wage: Number(formData.wage) || 0 }
+    if (editingId) {
+      updateOrder(editingId, payload)
+    } else {
+      addOrder(payload)
+    }
     setFormData({
       clientName: '', garment: '', amount: '', status: 'Measuring', dueDate: '', image: '',
       fabricImage: '', fabricType: '', fabricColor: '', assignedWorker: '', wage: '',
     })
+    setEditingId(null)
     setShowForm(false)
+  }
+
+  function startEdit(order) {
+    setEditingId(order.id)
+    setFormData({
+      clientName: order.clientName || '',
+      garment: order.garment || '',
+      amount: order.amount || '',
+      status: order.status || 'Measuring',
+      dueDate: order.dueDate || '',
+      image: order.image || '',
+      fabricImage: order.fabricImage || '',
+      fabricType: order.fabricType || '',
+      fabricColor: order.fabricColor || '',
+      assignedWorker: order.assignedWorker || '',
+      wage: order.wage || '',
+    })
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    setFormData({
+      clientName: '', garment: '', amount: '', status: 'Measuring', dueDate: '', image: '',
+      fabricImage: '', fabricType: '', fabricColor: '', assignedWorker: '', wage: '',
+    })
   }
 
   
@@ -162,6 +196,11 @@ function Orders() {
                 </td>
                 <td>{order.dueDate}</td>
                 <td>
+                  <button className="btn-secondary" onClick={() => startEdit(order)}>
+                    Edit
+                  </button>
+                </td>
+                <td>
                   <Link to={`/orders/${order.id}/ticket`} className="btn-secondary receipt-link">
                     Ticket
                   </Link>
@@ -219,9 +258,9 @@ function Orders() {
       )}
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>New Order</h2>
+            <h2>{editingId ? 'Edit Order' : 'New Order'}</h2>
             <form onSubmit={handleSubmit}>
               <label>
                 Client
@@ -313,8 +352,8 @@ function Orders() {
                 <input type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} required />
               </label>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>
-                  Cancel
+                <button type="submit" className="btn-primary" disabled={uploading}>
+                  {uploading ? 'Uploading...' : editingId ? 'Update Order' : 'Save Order'}
                 </button>
                 <button type="submit" className="btn-primary">
                   Save Order

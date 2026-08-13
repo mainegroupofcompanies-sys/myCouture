@@ -1,8 +1,12 @@
 import { useData } from '../context/DataContext'
+import { useAuth } from '../context/AuthContext'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 function Dashboard() {
   const { clients, orders, appointments, invoices } = useData()
+  const { user, role } = useAuth()
+  const isAdmin = role === 'admin'
+
   const pendingOrders = orders.filter((o) => o.status !== 'Ready')
   const pendingInvoices = invoices.filter((i) => i.status !== 'Paid')
   const totalPending = pendingInvoices.reduce((sum, i) => sum + (i.amount - i.depositPaid), 0)
@@ -13,6 +17,7 @@ function Dashboard() {
     revenueByMonth[month] = (revenueByMonth[month] || 0) + invoice.amount
   })
   const chartData = Object.entries(revenueByMonth).map(([month, total]) => ({ month, total }))
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -36,6 +41,63 @@ function Dashboard() {
   })
 
   const hasAlerts = todaysAppointments.length > 0 || overdueOrders.length > 0 || dueSoonOrders.length > 0
+
+  const myOrders = orders.filter((o) => o.assignedWorker === user?.displayName && o.status !== 'Ready')
+
+  if (!isAdmin) {
+    return (
+      <div className="page-content">
+        <div className="page-header">
+          <h1>Welcome, {user?.displayName || 'there'}</h1>
+        </div>
+
+        <div className="stat-grid">
+          <div className="stat-card">
+            <span className="stat-number">{myOrders.length}</span>
+            <span className="stat-label">Your Orders In Progress</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-number">{todaysAppointments.length}</span>
+            <span className="stat-label">Appointments Today</span>
+          </div>
+        </div>
+
+        <div className="dashboard-section">
+          <h2>Your Assigned Orders</h2>
+          {myOrders.length === 0 ? (
+            <p className="empty-note">No orders assigned to you right now.</p>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Client</th>
+                  <th>Garment</th>
+                  <th>Status</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myOrders.map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id.toString().slice(-4)}</td>
+                    <td>{order.clientName}</td>
+                    <td>{order.garment}</td>
+                    <td>
+                      <span className={`status-badge status-${order.status.toLowerCase()}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td>{order.dueDate}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="page-content">
@@ -83,7 +145,9 @@ function Dashboard() {
           <span className="stat-number">₵{totalPending}</span>
           <span className="stat-label">Pending Payments</span>
         </div>
-        <div className="dashboard-section">
+      </div>
+
+      <div className="dashboard-section">
         <h2>Revenue</h2>
         {chartData.length === 0 ? (
           <p className="empty-note">No paid invoices yet.</p>
@@ -112,7 +176,6 @@ function Dashboard() {
             </ResponsiveContainer>
           </div>
         )}
-      </div>
       </div>
 
       <div className="dashboard-section">

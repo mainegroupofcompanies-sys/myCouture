@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 
 function Appointments() {
-   const { appointments, addAppointment, deleteAppointment, clients } = useData()
+   const { appointments, addAppointment, deleteAppointment, updateAppointment, clients } = useData()
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState({
     clientName: '', type: '', date: '', time: '',
   })
@@ -14,9 +15,31 @@ function Appointments() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    addAppointment(formData)
+    if (editingId) {
+      updateAppointment(editingId, formData)
+    } else {
+      addAppointment(formData)
+    }
     setFormData({ clientName: '', type: '', date: '', time: '' })
+    setEditingId(null)
     setShowForm(false)
+  }
+
+  function startEdit(appt) {
+    setEditingId(appt.id)
+    setFormData({
+      clientName: appt.clientName || '',
+      type: appt.type || '',
+      date: appt.date || '',
+      time: appt.time || '',
+    })
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    setFormData({ clientName: '', type: '', date: '', time: '' })
   }
   function sendReminder(appt) {
     const client = clients.find((c) => c.name === appt.clientName)
@@ -62,6 +85,9 @@ function Appointments() {
               <p>{appt.type}</p>
             </div>
             <div className="appointment-time">{appt.time}</div>
+            <button className="btn-secondary no-print" onClick={() => startEdit(appt)}>
+              Edit
+            </button>
             <button className="btn-secondary no-print" onClick={() => sendReminder(appt)}>
               Remind
             </button>
@@ -78,9 +104,9 @@ function Appointments() {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Book Appointment</h2>
+            <h2>{editingId ? 'Edit Appointment' : 'Book Appointment'}</h2>
             <form onSubmit={handleSubmit}>
               <label>
                 Client Name
@@ -101,11 +127,11 @@ function Appointments() {
                 </label>
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>
+                <button type="button" className="btn-secondary" onClick={closeForm}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  Save Appointment
+                  {editingId ? 'Update Appointment' : 'Save Appointment'}
                 </button>
               </div>
             </form>

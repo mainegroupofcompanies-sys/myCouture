@@ -1,6 +1,6 @@
 /* eslint-disable react/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -8,16 +8,24 @@ import {
   onAuthStateChanged,
   updateProfile,
 } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [role, setRole] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser)
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
+        setRole(userDoc.exists() ? userDoc.data().role : 'worker')
+      } else {
+        setRole(null)
+      }
       setAuthLoading(false)
     })
     return unsubscribe
@@ -43,7 +51,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, authLoading, register, login, logout, updateDisplayName }}>
+    <AuthContext.Provider value={{ user, role, authLoading, register, login, logout, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   )

@@ -110,6 +110,21 @@ export function DataProvider({ children }) {
   async function updateClient(id, updatedData) {
     await updateDoc(doc(db, 'clients', id), updatedData)
   }
+  async function updateOrder(id, updatedData) {
+    await updateDoc(doc(db, 'orders', id), updatedData)
+  }
+
+  async function updateAppointment(id, updatedData) {
+    await updateDoc(doc(db, 'appointments', id), updatedData)
+  }
+
+  async function updateInvoice(id, updatedData) {
+    await updateDoc(doc(db, 'invoices', id), updatedData)
+  }
+
+  async function updateWorker(id, updatedData) {
+    await updateDoc(doc(db, 'workers', id), updatedData)
+  }
 
   async function deleteOrder(id) {
     await deleteDoc(doc(db, 'orders', id))
@@ -176,6 +191,10 @@ export function DataProvider({ children }) {
         addWorker,
         deleteClient,
         updateClient,
+        updateOrder,
+        updateAppointment,
+        updateInvoice,
+        updateWorker,
         deleteOrder,
         deleteAppointment,
         deleteInvoice,

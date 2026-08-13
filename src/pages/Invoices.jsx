@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 
 function Invoices() {
-  const { invoices, addInvoice, recordPayment, clients } = useData()
+  const { invoices, addInvoice, updateInvoice, recordPayment, clients } = useData()
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [paymentTarget, setPaymentTarget] = useState(null)
   const [paymentAmount, setPaymentAmount] = useState('')
   const [formData, setFormData] = useState({
@@ -17,15 +18,42 @@ function Invoices() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    addInvoice({
-      clientName: formData.clientName,
-      garment: formData.garment,
-      amount: Number(formData.amount),
-      depositPaid: Number(formData.depositPaid) || 0,
-      date: formData.date,
-    })
+    if (editingId) {
+      updateInvoice(editingId, {
+        clientName: formData.clientName,
+        garment: formData.garment,
+        date: formData.date,
+      })
+    } else {
+      addInvoice({
+        clientName: formData.clientName,
+        garment: formData.garment,
+        amount: Number(formData.amount),
+        depositPaid: Number(formData.depositPaid) || 0,
+        date: formData.date,
+      })
+    }
     setFormData({ clientName: '', garment: '', amount: '', depositPaid: '', date: '' })
+    setEditingId(null)
     setShowForm(false)
+  }
+
+  function startEdit(invoice) {
+    setEditingId(invoice.id)
+    setFormData({
+      clientName: invoice.clientName || '',
+      garment: invoice.garment || '',
+      amount: invoice.amount || '',
+      depositPaid: invoice.depositPaid || '',
+      date: invoice.date || '',
+    })
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    setFormData({ clientName: '', garment: '', amount: '', depositPaid: '', date: '' })
   }
 
   function handleRecordPayment(e) {
@@ -77,6 +105,11 @@ function Invoices() {
                 </td>
                 <td>{invoice.date}</td>
                 <td>
+                  <button className="btn-secondary" onClick={() => startEdit(invoice)}>
+                    Edit
+                  </button>
+                </td>
+                <td>
                   {invoice.status !== 'Paid' && (
                     <button className="btn-secondary" onClick={() => setPaymentTarget(invoice)}>
                       Record Payment
@@ -95,9 +128,9 @@ function Invoices() {
       </table>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>New Invoice</h2>
+            <h2>{editingId ? 'Edit Invoice' : 'New Invoice'}</h2>
             <form onSubmit={handleSubmit}>
               <label>
                 Client
@@ -117,11 +150,11 @@ function Invoices() {
               <div className="form-row">
                 <label>
                   Total Amount (₵)
-                  <input type="number" name="amount" value={formData.amount} onChange={handleChange} required />
+                  <input type="number" name="amount" value={formData.amount} onChange={handleChange} required disabled={!!editingId} />
                 </label>
                 <label>
                   Deposit Paid (₵)
-                  <input type="number" name="depositPaid" value={formData.depositPaid} onChange={handleChange} placeholder="0" />
+                  <input type="number" name="depositPaid" value={formData.depositPaid} onChange={handleChange} placeholder="0" disabled={!!editingId} />
                 </label>
               </div>
               <label>
@@ -129,11 +162,11 @@ function Invoices() {
                 <input type="date" name="date" value={formData.date} onChange={handleChange} required />
               </label>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>
+                <button type="button" className="btn-secondary" onClick={closeForm}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  Save Invoice
+                  {editingId ? 'Update Invoice' : 'Save Invoice'}
                 </button>
               </div>
             </form>
