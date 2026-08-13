@@ -1,3 +1,4 @@
+/* eslint-disable react/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react'
 import { db } from '../firebase'
 import {
@@ -29,7 +30,7 @@ export function DataProvider({ children }) {
       const snapshot = await getDocs(collection(db, collectionName))
       if (snapshot.empty) {
         for (const item of initialData) {
-          const { id, ...rest } = item
+          const { id: _id, ...rest } = item
           await addDoc(collection(db, collectionName), rest)
         }
       }
@@ -106,6 +107,9 @@ export function DataProvider({ children }) {
   async function deleteClient(id) {
     await deleteDoc(doc(db, 'clients', id))
   }
+  async function updateClient(id, updatedData) {
+    await updateDoc(doc(db, 'clients', id), updatedData)
+  }
 
   async function deleteOrder(id) {
     await deleteDoc(doc(db, 'orders', id))
@@ -171,6 +175,7 @@ export function DataProvider({ children }) {
         addInvoice,
         addWorker,
         deleteClient,
+        updateClient,
         deleteOrder,
         deleteAppointment,
         deleteInvoice,

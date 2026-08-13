@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 
 function Invoices() {
-  const { invoices, addInvoice, deleteInvoice, recordPayment, clients } = useData()
+  const { invoices, addInvoice, recordPayment, clients } = useData()
   const [showForm, setShowForm] = useState(false)
   const [paymentTarget, setPaymentTarget] = useState(null)
   const [paymentAmount, setPaymentAmount] = useState('')

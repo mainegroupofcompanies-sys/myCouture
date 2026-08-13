@@ -44,15 +44,16 @@ const FEMALE_FIELDS = [
 ]
 
 function Clients() {
-  const { clients, addClient, deleteClient, invoices } = useData()
+  const { clients, addClient, deleteClient, updateClient, invoices } = useData()
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [gender, setGender] = useState('Female')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [measurements, setMeasurements] = useState({})
+  const [search, setSearch] = useState('')
 
   const fields = gender === 'Male' ? MALE_FIELDS : FEMALE_FIELDS
-  const [search, setSearch] = useState('')
 
   function handleGenderChange(e) {
     setGender(e.target.value)
@@ -65,12 +66,35 @@ function Clients() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    addClient({ name, phone, gender, measurements })
+    if (editingId) {
+      updateClient(editingId, { name, phone, gender, measurements })
+    } else {
+      addClient({ name, phone, gender, measurements })
+    }
     setName('')
     setPhone('')
     setMeasurements({})
     setGender('Female')
+    setEditingId(null)
     setShowForm(false)
+  }
+
+  function startEdit(client) {
+    setEditingId(client.id)
+    setName(client.name)
+    setPhone(client.phone)
+    setGender(client.gender)
+    setMeasurements(client.measurements)
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    setName('')
+    setPhone('')
+    setMeasurements({})
+    setGender('Female')
   }
 
   return (
@@ -124,6 +148,9 @@ function Clients() {
                 })()}
               </td>
               <td>
+                <button className="btn-secondary" onClick={() => startEdit(client)} style={{ marginRight: '8px' }}>
+                  Edit
+                </button>
                 <button
                   className="btn-delete"
                   onClick={() => {
@@ -139,9 +166,9 @@ function Clients() {
       </table>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Add Client</h2>
+            <h2>{editingId ? 'Edit Client' : 'Add Client'}</h2>
             <form onSubmit={handleSubmit}>
               <label>
                 Name
@@ -175,11 +202,11 @@ function Clients() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>
+                <button type="button" className="btn-secondary" onClick={closeForm}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  Save Client
+                  {editingId ? 'Update Client' : 'Save Client'}
                 </button>
               </div>
             </form>

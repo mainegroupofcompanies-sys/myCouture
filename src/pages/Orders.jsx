@@ -6,7 +6,7 @@ function Orders() {
   const [historyTarget, setHistoryTarget] = useState(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const { orders, addOrder, deleteOrder, updateOrderStatus, clients, addInvoice, invoices, workers, markWagePaid } = useData()
+  const { orders, addOrder, deleteOrder, updateOrderStatus, clients, workers, markWagePaid } = useData()
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     clientName: '', garment: '', amount: '', status: 'Measuring', dueDate: '', image: '',
@@ -46,23 +46,7 @@ function Orders() {
     setShowForm(false)
   }
 
-  function createInvoiceFromOrder(order) {
-    const alreadyInvoiced = invoices.some(
-      (inv) => inv.clientName === order.clientName && inv.garment === order.garment && inv.amount === order.amount
-    )
-    if (alreadyInvoiced) {
-      alert('An invoice for this order already exists.')
-      return
-    }
-    addInvoice({
-      clientName: order.clientName,
-      garment: order.garment,
-      amount: order.amount,
-      status: 'Pending',
-      date: new Date().toISOString().split('T')[0],
-    })
-    alert(`Invoice created for ${order.clientName} — ₵${order.amount}`)
-  }
+  
 
   return (
     <div className="page-content">
