@@ -1,0 +1,38 @@
+export const orders = [
+  {
+    id: 101,
+    clientName: 'Ama Owusu',
+    garment: 'Wedding Gown',
+    amount: 1200,
+    status: 'Fitting',
+    dueDate: '2026-08-20',
+    history: [{ status: 'Fitting', date: '2026-08-01T09:00:00.000Z' }],
+  },
+  {
+    id: 102,
+    clientName: 'Kwame Boateng',
+    garment: 'Two-Piece Suit',
+    amount: 450,
+    status: 'Cutting',
+    dueDate: '2026-08-25',
+    history: [{ status: 'Cutting', date: '2026-08-03T10:00:00.000Z' }],
+  },
+  {
+    id: 103,
+    clientName: 'Efua Mensah',
+    garment: 'Kaba & Slit',
+    amount: 320,
+    status: 'Measuring',
+    dueDate: '2026-09-02',
+    history: [{ status: 'Measuring', date: '2026-08-05T14:00:00.000Z' }],
+  },
+  {
+    id: 104,
+    clientName: 'Ama Owusu',
+    garment: 'Evening Dress',
+    amount: 380,
+    status: 'Ready',
+    dueDate: '2026-08-15',
+    history: [{ status: 'Ready', date: '2026-08-10T11:00:00.000Z' }],
+  },
+]
