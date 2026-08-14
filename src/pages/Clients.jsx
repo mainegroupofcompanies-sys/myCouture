@@ -176,7 +176,7 @@ function Clients() {
               </label>
               <label>
                 Phone
-                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </label>
               <label>
                 Gender
@@ -195,7 +195,6 @@ function Clients() {
                       name={field.key}
                       value={measurements[field.key] || ''}
                       onChange={handleMeasurementChange}
-                      required
                     />
                   </label>
                 ))}

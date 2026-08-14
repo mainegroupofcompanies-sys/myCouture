@@ -9,6 +9,7 @@ function Orders() {
   const { orders, addOrder, deleteOrder, updateOrder, updateOrderStatus, clients, workers, markWagePaid } = useData()
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     clientName: '', garment: '', amount: '', status: 'Measuring', dueDate: '', image: '',
     fabricImage: '', fabricType: '', fabricColor: '', assignedWorker: '', wage: '',
@@ -201,11 +202,6 @@ function Orders() {
                   </button>
                 </td>
                 <td>
-                  <Link to={`/orders/${order.id}/ticket`} className="btn-secondary receipt-link">
-                    Ticket
-                  </Link>
-                </td>
-                <td>
                   <button
                     className="btn-delete"
                     onClick={() => {
@@ -249,7 +245,7 @@ function Orders() {
               ))}
             </div>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setHistoryTarget(null)}>
+              <button type="button" className="btn-secondary" onClick={() => setHistoryTarget(null)}>
                 Close
               </button>
             </div>
@@ -276,10 +272,6 @@ function Orders() {
               <label>
                 Garment
                 <input type="text" name="garment" value={formData.garment} onChange={handleChange} required />
-              </label>
-              <label>
-                Amount (₵)
-                <input type="number" name="amount" value={formData.amount} onChange={handleChange} required />
               </label>
               <label>
                 Amount (₵)
@@ -352,11 +344,11 @@ function Orders() {
                 <input type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} required />
               </label>
               <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeForm}>
+                  Cancel
+                </button>
                 <button type="submit" className="btn-primary" disabled={uploading}>
                   {uploading ? 'Uploading...' : editingId ? 'Update Order' : 'Save Order'}
-                </button>
-                <button type="submit" className="btn-primary">
-                  Save Order
                 </button>
               </div>
             </form>

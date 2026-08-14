@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { DataProvider } from './context/DataContext'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -17,33 +17,35 @@ import OrderTicket from './pages/OrderTicket'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
 
+function ProtectedLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  )
+}
+
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/clients" element={<ProtectedRoute adminOnly><Clients /></ProtectedRoute>} />
-                  <Route path="/clients/:id" element={<ProtectedRoute adminOnly><ClientDetail /></ProtectedRoute>} />
-                  <Route path="/measurements" element={<ProtectedRoute adminOnly><Measurements /></ProtectedRoute>} />
-                  <Route path="/workers" element={<ProtectedRoute adminOnly><Workers /></ProtectedRoute>} />
-                  <Route path="/orders" element={<Orders />} />
-                  <Route path="/appointments" element={<ProtectedRoute adminOnly><Appointments /></ProtectedRoute>} />
-                  <Route path="/invoices" element={<ProtectedRoute adminOnly><Invoices /></ProtectedRoute>} />
-                  <Route path="/invoices/:id" element={<ProtectedRoute adminOnly><InvoiceReceipt /></ProtectedRoute>} />
-                  <Route path="/orders/:id/ticket" element={<OrderTicket />} />
-                  <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </>
-          </ProtectedRoute>
-        }
-      />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/clients/:id" element={<ClientDetail />} />
+          <Route path="/measurements" element={<Measurements />} />
+          <Route path="/workers" element={<Workers />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/appointments" element={<Appointments />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/invoices/:id" element={<InvoiceReceipt />} />
+          <Route path="/orders/:id/ticket" element={<OrderTicket />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Route>
     </Routes>
   )
 }

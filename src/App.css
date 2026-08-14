@@ -330,6 +330,7 @@
   max-width: 520px;
   max-height: 85vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .modal h2 {
@@ -530,7 +531,7 @@
 }
 .measurements-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
 
@@ -825,6 +826,21 @@
   color: #1A1816;
   text-decoration: underline;
 }
+html, body, #root {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-y: auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .navbar-user {
   color: #B8935F !important;
 }

@@ -1,53 +1,32 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Navbar() {
-  const { user, role, logout } = useAuth()
-  const isAdmin = role === 'admin'
-  const location = useLocation()
-  const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
-  function isActive(path) {
-    return location.pathname === path
-  }
-
-  async function handleLogout() {
-    try {
-      await logout()
-    } finally {
-      navigate('/login')
-    }
-  }
+  const navItems = [
+    { to: '/', label: 'Dashboard' },
+    { to: '/clients', label: 'Clients' },
+    { to: '/measurements', label: 'Measurements' },
+    { to: '/workers', label: 'Workers' },
+    { to: '/orders', label: 'Orders' },
+    { to: '/appointments', label: 'Appointments' },
+    { to: '/invoices', label: 'Invoices' },
+    { to: '/settings', label: user?.displayName || 'Settings', isUserLink: true },
+  ]
 
   return (
     <nav className="navbar">
       <div className="navbar-logo">myCouture</div>
-
       <div className="navbar-links">
-        <NavLink to="/" className={({ isActive }) => (isActive ? 'active' : '')}>Dashboard</NavLink>
-        <NavLink to="/clients" className={({ isActive }) => (isActive ? 'active' : '')}>Clients</NavLink>
-        <NavLink to="/measurements" className={({ isActive }) => (isActive ? 'active' : '')}>Measurements</NavLink>
-        {isAdmin && <NavLink to="/workers" className={({ isActive }) => (isActive ? 'active' : '')}>Workers</NavLink>}
-        <NavLink to="/orders" className={({ isActive }) => (isActive ? 'active' : '')}>Orders</NavLink>
-        <NavLink to="/appointments" className={({ isActive }) => (isActive ? 'active' : '')}>Appointments</NavLink>
-        <NavLink to="/invoices" className={({ isActive }) => (isActive ? 'active' : '')}>Invoices</NavLink>
-        <NavLink to="/settings" className={({ isActive }) => (isActive ? 'active' : '')}>Settings</NavLink>
-      </div>
-
-      <div className="navbar-footer">
-        {user ? (
-          <>
-            <div className={`sidebar-user ${isActive('/settings') ? 'active' : ''}`}>{user.displayName || 'User'}</div>
-            <button className="sidebar-logout" onClick={handleLogout}>
-              Log Out
-            </button>
-          </>
-        ) : (
-          <div className="auth-links">
-            <NavLink to="/login" className={({ isActive }) => (isActive ? 'active' : '')}>Log In</NavLink>
-            <NavLink to="/register" className={({ isActive }) => (isActive ? 'active' : '')}>Register</NavLink>
-          </div>
-        )}
+        {navItems.map((item) => (
+          <Link key={item.to} to={item.to} className={item.isUserLink ? 'navbar-user' : ''}>
+            {item.label}
+          </Link>
+        ))}
+        <button type="button" className="btn-secondary" onClick={logout} style={{ marginLeft: '12px' }}>
+          Logout
+        </button>
       </div>
     </nav>
   )

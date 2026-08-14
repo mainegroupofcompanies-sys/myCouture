@@ -1,5 +1,13 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
+import { secondaryAuth, auth, db } from '../firebase'
+import {
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  updateProfile,
+} from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 
 function Workers() {
   const { workers, addWorker, deleteWorker, updateWorker, orders } = useData()
@@ -8,19 +16,40 @@ function Workers() {
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
+    setError('')
+
     if (editingId) {
       updateWorker(editingId, { name, role, phone })
-    } else {
-      addWorker({ name, role, phone })
+      closeForm()
+      return
     }
-    setName('')
-    setRole('')
-    setPhone('')
-    setEditingId(null)
-    setShowForm(false)
+
+    setSaving(true)
+    try {
+      const result = await createUserWithEmailAndPassword(secondaryAuth, email, password)
+      await updateProfile(result.user, { displayName: name })
+      await setDoc(doc(db, 'users', result.user.uid), { name, role: 'worker' })
+      await signOut(secondaryAuth)
+      await addWorker({ name, role, phone, email })
+      closeForm()
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
+        setError('That email is already registered.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password must be at least 6 characters.')
+      } else {
+        setError('Could not create login. Please try again.')
+      }
+    } finally {
+      setSaving(false)
+    }
   }
 
   function startEdit(worker) {
@@ -37,6 +66,22 @@ function Workers() {
     setName('')
     setRole('')
     setPhone('')
+    setEmail('')
+    setPassword('')
+    setError('')
+  }
+
+  async function handleResetPassword(worker) {
+    if (!worker.email) {
+      alert('No email on file for this worker.')
+      return
+    }
+    try {
+      await sendPasswordResetEmail(auth, worker.email)
+      alert(`Password reset email sent to ${worker.email}`)
+    } catch (err) {
+      alert('Could not send reset email.')
+    }
   }
 
   function wagesOwed(workerName) {
@@ -60,7 +105,9 @@ function Workers() {
             <th>Name</th>
             <th>Role</th>
             <th>Phone</th>
+            <th>Email</th>
             <th>Wages Owed</th>
+            <th></th>
             <th></th>
           </tr>
         </thead>
@@ -72,6 +119,7 @@ function Workers() {
                 <td>{worker.name}</td>
                 <td>{worker.role}</td>
                 <td>{worker.phone}</td>
+                <td>{worker.email || <span className="empty-note">—</span>}</td>
                 <td>
                   <span className={owed > 0 ? 'balance-owed' : 'balance-clear'}>₵{owed}</span>
                 </td>
@@ -79,6 +127,13 @@ function Workers() {
                   <button className="btn-secondary" onClick={() => startEdit(worker)} style={{ marginRight: '8px' }}>
                     Edit
                   </button>
+                  {worker.email && (
+                    <button className="btn-secondary" onClick={() => handleResetPassword(worker)}>
+                      Reset Password
+                    </button>
+                  )}
+                </td>
+                <td>
                   <button
                     className="btn-delete"
                     onClick={() => {
@@ -98,6 +153,7 @@ function Workers() {
         <div className="modal-overlay" onClick={closeForm}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>{editingId ? 'Edit Worker' : 'Add Worker'}</h2>
+            {error && <p className="auth-error">{error}</p>}
             <form onSubmit={handleSubmit}>
               <label>
                 Name
@@ -117,12 +173,32 @@ function Workers() {
                 Phone
                 <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required />
               </label>
+
+              {!editingId && (
+                <>
+                  <label>
+                    Login Email
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  </label>
+                  <label>
+                    Temporary Password
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      minLength={6}
+                      required
+                    />
+                  </label>
+                </>
+              )}
+
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={closeForm}>
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary">
-                  {editingId ? 'Update Worker' : 'Save Worker'}
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? 'Creating...' : editingId ? 'Update Worker' : 'Save Worker'}
                 </button>
               </div>
             </form>
